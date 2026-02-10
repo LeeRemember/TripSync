@@ -32,13 +32,20 @@ jobs:
         uv venv
         # 安装依赖
         uv pip install -r requirements.txt
-
+    
     # 5. 使用 uv run 执行打包
-    # 注意：这里直接使用 uv run，它会自动使用刚才创建的虚拟环境
     - name: Build EXE with PyInstaller
       run: |
-        uv run pyinstaller --onefile --clean --name "TripSync_Assistant" --hidden-import=streamlit --collect-all streamlit --collect-all chinesecalendar --collect-all pandas --add-data "app.py;." run.py
-
+        # 关键修改：增加了 --hidden-import=chinese_calendar 和 --collect-all chinese_calendar
+        uv run pyinstaller --onefile --clean --name "TripSync_Assistant" ^
+          --hidden-import=streamlit ^
+          --hidden-import=chinese_calendar ^
+          --collect-all streamlit ^
+          --collect-all chinesecalendar ^
+          --collect-all chinese_calendar ^
+          --collect-all pandas ^
+          --add-data "app.py;." ^
+          run.py
     # 6. 上传产物
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
