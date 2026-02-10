@@ -12,12 +12,10 @@ def resolve_path(path):
     return os.path.join(basedir, path)
 
 def open_browser():
-    # 尝试打开浏览器访问 localhost
     webbrowser.open_new("http://localhost:8501")
 
 def get_local_ip():
     try:
-        # 获取本机局域网IP，方便打印出来提示用户
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.connect(("8.8.8.8", 80))
         ip = s.getsockname()[0]
@@ -27,26 +25,26 @@ def get_local_ip():
         return "Unknown"
 
 if __name__ == "__main__":
-    # 1. 打印局域网访问地址
+    # ... (前面的打印代码保持不变) ...
     ip = get_local_ip()
     print("-" * 50)
     print(f"✅ 程序启动成功！")
     print(f"🌍 本机访问地址: http://localhost:8501")
     print(f"📡 局域网访问地址: http://{ip}:8501")
-    print(f"   (请将局域网地址发给同事，他们即可访问)")
     print("-" * 50)
 
-    # 2. 延迟1秒自动打开浏览器
     Timer(1, open_browser).start()
 
-    # 3. 启动 Streamlit
-    # --server.address=0.0.0.0 允许外部访问
-    # --server.headless=true 不自动弹窗（我们上面自己弹了）
+    # === 关键修改在这里 ===
     sys.argv = [
         "streamlit",
         "run",
         resolve_path("app.py"),
         "--server.address=0.0.0.0",
         "--global.developmentMode=false",
+        "--server.headless=true",       # 1. 禁用交互式提示（防止黑框卡住询问）
+        "--browser.gatherUsageStats=false", # 2. 彻底禁用数据收集（这是不再询问邮箱的关键）
+        "--theme.base=light"            # (可选) 强制浅色主题，看起来更专业
     ]
+    
     sys.exit(stcli.main())

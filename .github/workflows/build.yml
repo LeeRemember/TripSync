@@ -1,0 +1,48 @@
+name: Build Windows EXE with uv
+
+# 触发条件保持不变
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    # 1. 拉取代码
+    - uses: actions/checkout@v4
+
+    # 2. 安装 uv (使用官方 Action)
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
+      with:
+        enable-cache: true  # 开启缓存，第二次构建会飞快
+        cache-dependency-glob: "requirements.txt"
+
+    # 3. 安装 Python (使用 uv 管理 Python 版本)
+    - name: Set up Python 3.10
+      run: uv python install 3.10
+
+    # 4. 创建虚拟环境并安装依赖
+    - name: Install Dependencies
+      run: |
+        # 创建虚拟环境
+        uv venv
+        # 安装依赖
+        uv pip install -r requirements.txt
+
+    # 5. 使用 uv run 执行打包
+    # 注意：这里直接使用 uv run，它会自动使用刚才创建的虚拟环境
+    - name: Build EXE with PyInstaller
+      run: |
+        uv run pyinstaller --onefile --clean --name "TripSync_Assistant" --hidden-import=streamlit --collect-all streamlit --collect-all chinesecalendar --collect-all pandas --add-data "app.py;." run.py
+
+    # 6. 上传产物
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: TripSync-Windows-EXE
+        path: dist/*.exe
+        retention-days: 5
