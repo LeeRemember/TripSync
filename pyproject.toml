@@ -1,0 +1,12 @@
+[project]
+name = "tripsync"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "chinesecalendar>=1.11.0",
+    "pandas>=2.3.3",
+    "pyinstaller>=6.18.0",
+    "streamlit>=1.54.0",
+]
