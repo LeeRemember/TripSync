@@ -215,22 +215,39 @@ if is_year_valid:
 
         with col_table:
             st.markdown("**👇 勾选无法出差的日期:**")
-            selection = st.dataframe(
-                df_calendar[["日期", "星期"]], 
-                height=300, 
-                hide_index=True,
-                width="stretch",
-                on_select="rerun", 
-                selection_mode="multi-row",
-                key=f"date_selector_{st.session_state.form_reset_key}" 
-            )
+            
+            df_calendar = df_calendar.copy()
+            df_calendar['月份'] = df_calendar['日期对象'].apply(lambda x: x.month)
+            months = sorted(df_calendar['月份'].unique())
+            tabs = st.tabs([f"{m}月" for m in months])
+            
+            selected_dates = []
+            
+            for i, m in enumerate(months):
+                with tabs[i]:
+                    df_m = df_calendar[df_calendar['月份'] == m].copy()
+                    
+                    select_all = st.checkbox(f"全选 {m}月", key=f"chk_all_{m}_{st.session_state.form_reset_key}")
+                    df_m.insert(0, "勾选", select_all)
+                    
+                    edited_df = st.data_editor(
+                        df_m[["勾选", "日期", "星期"]],
+                        hide_index=True,
+                        use_container_width=True,
+                        height=250,
+                        key=f"editor_{m}_{st.session_state.form_reset_key}_{select_all}", 
+                        disabled=["日期", "星期"]
+                    )
+                    
+                    for idx, row in edited_df.iterrows():
+                        if row["勾选"]:
+                            date_str = row["日期"]
+                            date_obj = df_m[df_m["日期"] == date_str]["日期对象"].values[0]
+                            selected_dates.append(date_obj)
 
         if add_btn:
             if final_name:
-                selected_rows = selection.selection.rows
-                blackout_dates = []
-                if selected_rows:
-                    blackout_dates = df_calendar.iloc[selected_rows]["日期对象"].tolist()
+                blackout_dates = selected_dates
                 st.session_state.people_list.append({"name": final_name, "count": new_count, "blackout": blackout_dates})
                 st.toast(f"✅ 已添加 {final_name}", icon="🎉")
                 st.session_state.form_reset_key += 1 
