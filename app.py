@@ -68,12 +68,14 @@ class TripEvent:
         self.approval_date = get_prev_workday(start_date)
         self.reimburse_date = get_next_workday(end_date)
     def to_dict(self):
+        amount = len(self.partners) * self.days_count * 160
         return {
             "开始日期": self.start_date,
             "结束日期": self.end_date,
             "日期显示": f"{self.start_date.strftime('%m-%d')} ~ {self.end_date.strftime('%m-%d')}" if self.days_count > 1 else f"{self.start_date.strftime('%m-%d')}",
             "天数": self.days_count,
             "出差人员": " & ".join(self.partners),
+            "金额": amount,
             "审批日期(前)": self.approval_date.strftime('%Y-%m-%d'),
             "报销日期(后)": self.reimburse_date.strftime('%Y-%m-%d')
         }
@@ -292,7 +294,7 @@ if is_year_valid:
                     st.dataframe(pd.DataFrame(stat_data), width="stretch")
 
                     df_res = pd.DataFrame(results)
-                    st.dataframe(df_res[["日期显示", "天数", "出差人员", "审批日期(前)", "报销日期(后)"]], width="stretch", height=600)
+                    st.dataframe(df_res[["日期显示", "天数", "出差人员", "金额", "审批日期(前)", "报销日期(后)"]], width="stretch", height=600)
                     
                     csv = df_res.to_csv(index=False).encode('utf-8-sig')
                     st.download_button("📥 下载表格", data=csv, file_name=f'Trip_{year}_Q{quarter}.csv', mime='text/csv')
